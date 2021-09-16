@@ -4,8 +4,8 @@
   "description": "",
   "scripts": {
     "start": "if-env NODE_ENV=production ?? npm run start:prod || npm run start:dev",
-    "start:dev": "nodemon --watch 'src/' --exec 'ts-node-dev --inspect --respawn --transpile-only --ignore-watch node_modules -r tsconfig-paths/register src/app.ts' -e ts | pino-pretty",
-    "start:prod": "tsc -p . && node build/app.js",
+    "start:dev": "nodemon --watch 'src/' --exec 'ts-node-dev --inspect --respawn --transpile-only --ignore-watch node_modules -r tsconfig-paths/register src/server.ts' -e ts | pino-pretty",
+    "start:prod": "tsc -p . && node build/server.js",
     "restart": "kill-port $PORT",
     "test": "jest",
     "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
@@ -15,15 +15,17 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.27.0",
-    "@aws-sdk/lib-storage": "^3.27.0",
+    "@types/aws-sdk": "^2.7.0",
+    "aws-sdk": "^2.989.0",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "express-async-errors": "^3.1.1",
     "if-env": "^1.0.4",
     "pino": "^6.13.0",
-    "pino-pretty": "^6.0.0"
+    "pino-pretty": "^6.0.0",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.12",
@@ -33,6 +35,7 @@
     "@types/node": "^16.6.1",
     "@types/pino": "^6.3.11",
     "@types/stream-mock": "^2.0.1",
+    "@types/uuid": "^8.3.1",
     "@typescript-eslint/eslint-plugin": "^4.29.2",
     "@typescript-eslint/parser": "^4.29.2",
     "aws-sdk-client-mock": "^0.5.3",
