@@ -3,9 +3,15 @@ import { Router } from 'express';
 import preSignedUrlsRoute from './routes/v1/preSignedUrlsRoute';
 import healthCheck from './routes/healthCheck';
 
-const routes = Router();
+const apiRouter = Router();
+const routerV1 = Router();
 
-routes.use('/health-check', healthCheck);
-routes.use('/pre-signed-urls', preSignedUrlsRoute);
+// Non version controlled routes
+apiRouter.use('/health-check', healthCheck);
 
-export default routes;
+// Version control
+apiRouter.use('/v1', routerV1);
+
+routerV1.use('/pre-signed-urls', preSignedUrlsRoute);
+
+export default apiRouter;

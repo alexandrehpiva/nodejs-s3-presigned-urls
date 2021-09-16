@@ -5,11 +5,13 @@
   "scripts": {
     "start": "if-env NODE_ENV=production ?? npm run start:prod || npm run start:dev",
     "start:dev": "nodemon --watch 'src/' --exec 'ts-node-dev --inspect --respawn --transpile-only --ignore-watch node_modules -r tsconfig-paths/register src/server.ts' -e ts | pino-pretty",
-    "start:prod": "tsc -p . && node build/server.js",
+    "start:prod": "tsc -p tsconfig.json && node build/server.js",
+    "build": "tsc -p tsconfig.json",
     "restart": "kill-port $PORT",
     "test": "jest",
     "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
-    "lint": "eslint --ext .ts, src/**/*"
+    "lint": "eslint --ext .ts, src/**/*",
+    "swagger-autogen": "node swagger.js"
   },
   "keywords": [],
   "author": "",
@@ -62,6 +64,7 @@
     "stream-mock": "^2.0.5",
     "swagger-autogen": "^2.11.2",
     "ts-jest": "^27.0.4",
+    "ts-node": "^10.2.1",
     "ts-node-dev": "^1.1.8",
     "typescript": "^4.3.5"
   }
