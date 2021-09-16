@@ -11,11 +11,27 @@ import { isCompletedPartArr } from '../../../utils/validators';
 
 const preSignedUrlsRoute = express.Router();
 
-// interface GetQuery {
-//   fileName?: string;
-//   fileSize?: string;
-// }
-
+/**
+ * @swagger
+ * /v1/pre-signed-urls:
+ *  get:
+ *    tags: []
+ *    description: ''
+ *    parameters:
+ *    - name: fileName
+ *      in: query
+ *      type: string
+ *    - name: fileSize
+ *      in: query
+ *      type: string
+ *    responses:
+ *      '200':
+ *        description: OK
+ *      '400':
+ *        description: Bad Request
+ *      '500':
+ *        description: Internal Server Error
+ */
 preSignedUrlsRoute.get('/', async (req: Request, res: Response) => {
   const { fileName, fileSize } = req.query;
 
@@ -90,12 +106,35 @@ preSignedUrlsRoute.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// interface PostBody {
-//   uploadId?: string;
-//   objectName?: string;
-//   parts?: CompletedPart;
-// }
-
+/**
+ * @swagger
+ * /v1/pre-signed-urls:
+ *  post:
+ *    tags: []
+ *    description: ''
+ *    parameters:
+ *    - name: obj
+ *      in: body
+ *      schema:
+ *        type: object
+ *        properties:
+ *          uploadId:
+ *            example: ""
+ *          objectName:
+ *            example: ""
+ *          parts:
+ *            example: {
+ *              ETag: "",
+ *              PartNumber: 0
+ *            }
+ *    responses:
+ *      '201':
+ *        description: Created
+ *      '400':
+ *        description: Bad Request
+ *      '500':
+ *        description: Internal Server Error
+ */
 preSignedUrlsRoute.post('/', async (req: Request, res: Response) => {
   // TODO: remove objectName
   const { uploadId, objectName, parts } = req.body;
@@ -188,11 +227,30 @@ preSignedUrlsRoute.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// interface PostAbortBody {
-//   uploadId?: string;
-//   objectName?: string;
-// }
-
+/**
+ * @swagger
+ * /v1/pre-signed-urls/abort:
+ *  post:
+ *    tags: []
+ *    description: ''
+ *    parameters:
+ *    - name: obj
+ *      in: body
+ *      schema:
+ *        type: object
+ *        properties:
+ *          uploadId:
+ *            example: ""
+ *          objectName:
+ *            example: ""
+ *    responses:
+ *      '200':
+ *        description: OK
+ *      '400':
+ *        description: Bad Request
+ *      '500':
+ *        description: Internal Server Error
+ */
 preSignedUrlsRoute.post('/abort', async (req: Request, res: Response) => {
   const { uploadId, objectName } = req.body;
 
