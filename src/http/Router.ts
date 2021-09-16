@@ -4,7 +4,7 @@ import swaggerUi from 'swagger-ui-express';
 import preSignedUrlsRoute from './routes/v1/preSignedUrlsRoute';
 import healthCheck from './routes/healthCheck';
 
-import swaggerDocument from '../../swagger_output.json';
+import swaggerDocument from '../swagger_output.json';
 
 const options = {
   explorer: true,
