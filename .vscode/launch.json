@@ -7,7 +7,7 @@
     {
       "type": "node",
       "restart": true,
-      "name": "Launch & Debug",
+      "name": "Attach Debugger",
       "skipFiles": [
         "<node_internals>/**"
       ],
