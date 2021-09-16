@@ -1,8 +1,6 @@
 import swaggerJSDoc from 'swagger-jsdoc';
 
 const swaggerDefinition: swaggerJSDoc.SwaggerDefinition = {
-  // host: `${process.env.HOST}:${process.env.PORT}`,
-  // openapi: '3.0.0',
   swagger: '2.0',
   info: {
     version: '1.0.0',
@@ -12,20 +10,6 @@ const swaggerDefinition: swaggerJSDoc.SwaggerDefinition = {
   schemes: ['http'],
   tags: [],
   basePath: '/',
-
-  // security: [
-  //   {
-  //     Bearer: [],
-  //   },
-  // ],
-  // securityDefinitions: {
-  //   Bearer: {
-  //     description: "Please insert Auth token into header with prefix 'Bearer '",
-  //     in: 'header',
-  //     name: 'Authorization',
-  //     type: 'apiKey',
-  //   },
-  // },
 };
 
 const swaggerOptions: swaggerJSDoc.Options = {

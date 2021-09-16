@@ -2,6 +2,7 @@ import { promisify } from 'util';
 import crypto from 'crypto';
 import aws from 'aws-sdk';
 import { CompletedPart } from 'aws-sdk/clients/s3';
+import { defaultUrlsExpirationTime } from '../config/s3Config';
 
 const randomBytes = promisify(crypto.randomBytes);
 
@@ -26,9 +27,6 @@ export async function generateMultipartUploadURL(fileName: string) {
   const rawBytes = await randomBytes(4);
   const objectName = fileName ?? rawBytes.toString('hex');
 
-  // TODO: Move to config file
-  const defaultUrlsExpirationTime = 24 * 60 * 60;
-
   const Expires = new Date(
     new Date().getTime() +
       Number(process.env.AWS_S3_URLS_EXPIRATION_TIME ?? defaultUrlsExpirationTime) * 1000
@@ -48,12 +46,6 @@ export async function generateMultipartUploadURL(fileName: string) {
     uploadId: response.UploadId,
     expirationDate: Expires.toISOString(),
   };
-  // try {
-  // } catch (error) {
-  //   console.error('Error on generateMultipartUploadURL: ' + error);
-  //   // TODO: Create an error provider class
-  //   throw new Error(error);
-  // }
 }
 
 export async function generatePresignedUrlsParts(
@@ -85,12 +77,6 @@ export async function generatePresignedUrlsParts(
     map[index] = part;
     return map;
   }, {});
-  // try {
-  // } catch (error) {
-  //   console.error('Error on generatePresignedUrlsParts: ' + error);
-  //   // TODO: Create an error provider class
-  //   throw new Error(error);
-  // }
 }
 
 export async function completeMultipartUpload(
@@ -113,12 +99,6 @@ export async function completeMultipartUpload(
   };
 
   await s3.completeMultipartUpload(params).promise();
-  // try {
-  // } catch (error) {
-  //   console.error('Error on completeMultipartUpload: ' + error);
-  //   // TODO: Create an error provider class
-  //   throw new Error(error);
-  // }
 }
 
 export async function abortMultipartUpload(uploadId: string, objectName: string) {

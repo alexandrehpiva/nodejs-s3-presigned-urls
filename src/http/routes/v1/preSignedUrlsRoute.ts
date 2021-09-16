@@ -8,6 +8,7 @@ import {
   generatePresignedUrlsParts,
 } from '../../../services/presignedUrlsService';
 import { isCompletedPartArr } from '../../../utils/validators';
+import { minPartSize } from '../../../config/s3Config';
 
 const preSignedUrlsRoute = express.Router();
 
@@ -71,9 +72,6 @@ preSignedUrlsRoute.get('/', async (req: Request, res: Response) => {
 
     // const parts = Number.isSafeInteger(process.env.FILE_PART_SIZE)  ? process.env.;
 
-    // TODO: Move to config file
-    const minPartSize = 5 * 1024 * 1024;
-
     const filePartSize = Number.parseInt(process.env.FILE_PART_SIZE);
     const partsSize =
       !Number.isNaN(filePartSize) && filePartSize >= minPartSize ? filePartSize : minPartSize;
@@ -136,7 +134,6 @@ preSignedUrlsRoute.get('/', async (req: Request, res: Response) => {
  *        description: Internal Server Error
  */
 preSignedUrlsRoute.post('/', async (req: Request, res: Response) => {
-  // TODO: remove objectName
   const { uploadId, objectName, parts } = req.body;
 
   // Validations
@@ -202,15 +199,14 @@ preSignedUrlsRoute.post('/', async (req: Request, res: Response) => {
 
   // Complete multipart upload
   try {
-    // TODO: Verify if const resp is undefined and remove it
-    const resp = await completeMultipartUpload(uploadId, objectName, parts);
+    await completeMultipartUpload(uploadId, objectName, parts);
 
     const response = {
       status: 'MultipartUpload completed successfully',
       uuid: uuid(),
     };
 
-    console.info(response.status, { resp });
+    console.info(response.status, { uploadId, objectName });
     res.status(201);
     res.send(response);
   } catch (error) {
