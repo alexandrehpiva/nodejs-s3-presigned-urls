@@ -5,33 +5,34 @@ import {
   generateMultipartUploadURL,
   generatePresignedUrlsParts,
 } from 'services/presignedUrlsService';
-import { v4 as uuidv4 } from 'uuid';
-import { isCompletedPartArr } from '../../../utils/validators';
-import { ErrorResponse } from '../../../typings/shared';
+import { ErrorResponse } from 'typings/shared';
+import { isCompletedPartArr } from 'utils/validators';
+import { v4 as uuid } from 'uuid';
 
 const preSignedUrlsRoute = express.Router();
 
-// async function abort(uploadId: string, objectName: string, res) {
-//   try {
-//     await abortMultipartUpload(uploadId, objectName);
-
-//     console.info('Aborted: ', { uploadId, objectName });
-
-//     res.status(500);
-//     res.send(`Aborted: ${objectName}`);
-//     // TODO: Verify if any part still exists using ListParts
-//   } catch (err) {
-//     res.status(500);
-//     res.send(err);
-//   }
-// }
-
 preSignedUrlsRoute.get('/', async (req, res) => {
-  const { parts, fileName } = req.query;
+  const { fileName, fileSize } = req.query;
 
-  if (typeof fileName !== 'string' || typeof parts !== 'string') {
+  // Validations
+  if (typeof fileName !== 'string' || !fileName.trim()) {
     const response: ErrorResponse = {
-      error: 'Invalid value in "fileName" or in "parts" query parameters.',
+      error: 'Invalid value in "fileName" query parameter.',
+    };
+
+    console.error(response.error);
+    res.status(400);
+    res.send(response);
+    return;
+  }
+
+  if (
+    typeof fileSize !== 'string' ||
+    Number.isNaN(Number.parseInt(fileSize)) ||
+    Number.parseInt(fileSize) < 1
+  ) {
+    const response: ErrorResponse = {
+      error: '"fileSize" query parameter must have a positive integer value.',
     };
 
     console.error(response.error);
@@ -43,27 +44,29 @@ preSignedUrlsRoute.get('/', async (req, res) => {
   console.info('New upload');
   console.info('GET query: ', req.query);
 
-  if (Number.parseInt(parts) < 1) {
-    const response: ErrorResponse = {
-      error: '"parts" query parameter must have a positive numeric value.',
-    };
-
-    console.error(response.error);
-    res.status(400);
-    res.send(response);
-  }
-
   try {
     // Initialize a multipart upload
-    const { s3, objectName, uploadId } = await generateMultipartUploadURL(fileName);
+    const { s3, objectName, uploadId, expirationDate } = await generateMultipartUploadURL(fileName);
+
+    // const parts = Number.isSafeInteger(process.env.FILE_PART_SIZE)  ? process.env.;
+
+    // TODO: Move to config file
+    const minPartSize = 5 * 1024 * 1024;
+
+    const filePartSize = Number.parseInt(process.env.FILE_PART_SIZE);
+    const partsSize =
+      !Number.isNaN(filePartSize) && filePartSize >= minPartSize ? filePartSize : minPartSize;
+    const parts = Math.ceil(Number.parseInt(fileSize) / partsSize);
 
     // Create pre-signed URLs for each part
-    const urls = await generatePresignedUrlsParts(s3, uploadId, objectName, Number.parseInt(parts));
+    const urls = await generatePresignedUrlsParts(s3, uploadId, objectName, parts);
 
     const response = {
-      uploadId,
       objectName,
+      uploadId,
       urls,
+      expirationDate,
+      partsSize,
     };
 
     console.info(`Presigned Urls generated for "${objectName}"`);
@@ -86,7 +89,7 @@ preSignedUrlsRoute.post('/', async (req, res) => {
   // TODO: remove objectName
   const { uploadId, objectName, parts } = req.body;
 
-  // Query params validation
+  // Validations
   if (typeof uploadId !== 'string' || typeof objectName !== 'string') {
     const response: ErrorResponse = {
       error: 'Invalid value in "uploadId" or in "objectName" query parameters.',
@@ -149,31 +152,18 @@ preSignedUrlsRoute.post('/', async (req, res) => {
 
   // Complete multipart upload
   try {
+    // TODO: Verify if const resp is undefined and remove it
     const resp = await completeMultipartUpload(uploadId, objectName, parts);
 
     const response = {
       status: 'MultipartUpload completed successfully',
-      uuid: uuidv4(),
+      uuid: uuid(),
     };
 
     console.info(response.status, { resp });
     res.status(201);
     res.send(response);
   } catch (error) {
-    // await abort(uploadId, objectName, res);
-    try {
-      await abortMultipartUpload(uploadId, objectName);
-
-      console.info('Aborted: ', { uploadId, objectName });
-      // TODO: Verify if any part still exists using ListParts
-    } catch (err) {
-      res.status(500);
-      res.send({
-        error: ``,
-        Object: objectName,
-      });
-    }
-
     const response: ErrorResponse = {
       error: 'An error occurred when trying to complete MultipartUpload.',
       objectName,
@@ -184,6 +174,69 @@ preSignedUrlsRoute.post('/', async (req, res) => {
     console.error('Error:', response);
     res.status(500);
     res.send(response);
+  }
+});
+
+preSignedUrlsRoute.post('/abort', async (req, res) => {
+  const { uploadId, objectName } = req.body;
+
+  // Validations
+  if (typeof uploadId !== 'string' || typeof objectName !== 'string') {
+    const response: ErrorResponse = {
+      error: 'Invalid value in "uploadId" or in "objectName" query parameters.',
+      objectName,
+    };
+
+    console.error('Error:', response);
+    res.status(400);
+    res.send(response);
+    return;
+  }
+
+  if (!uploadId) {
+    const response: ErrorResponse = {
+      error: '"uploadId" body parameter must have a value.',
+      objectName,
+    };
+
+    console.error('Error:', response);
+    res.status(400);
+    res.send(response);
+    return;
+  }
+
+  if (!objectName) {
+    const response: ErrorResponse = {
+      error: '"objectName" body parameter must have a value.',
+      objectName,
+    };
+
+    console.error('Error:', response);
+    res.status(400);
+    res.send(response);
+    return;
+  }
+
+  try {
+    await abortMultipartUpload(uploadId, objectName);
+
+    // TODO: Verify if any part still exists using ListParts
+
+    const response = {
+      status: 'MultipartUpload aborted successfully',
+      uploadId,
+      objectName,
+    };
+
+    console.info(response.status);
+    res.status(200);
+    res.send(response);
+  } catch (err) {
+    res.status(500);
+    res.send({
+      error: ``,
+      Object: objectName,
+    });
   }
 });
 

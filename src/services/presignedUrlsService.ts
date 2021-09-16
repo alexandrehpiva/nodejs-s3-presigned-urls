@@ -26,8 +26,12 @@ export async function generateMultipartUploadURL(fileName: string) {
   const rawBytes = await randomBytes(4);
   const objectName = fileName ?? rawBytes.toString('hex');
 
+  // TODO: Move to config file
+  const defaultUrlsExpirationTime = 24 * 60 * 60;
+
   const Expires = new Date(
-    new Date().getTime() + Number(process.env.AWS_S3_URLS_EXPIRATION_TIME ?? 86400) * 1000
+    new Date().getTime() +
+      Number(process.env.AWS_S3_URLS_EXPIRATION_TIME ?? defaultUrlsExpirationTime) * 1000
   );
 
   const params: aws.S3.CreateMultipartUploadRequest = {
@@ -42,6 +46,7 @@ export async function generateMultipartUploadURL(fileName: string) {
     s3,
     objectName,
     uploadId: response.UploadId,
+    expirationDate: Expires.toISOString(),
   };
   // try {
   // } catch (error) {
