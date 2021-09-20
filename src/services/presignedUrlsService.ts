@@ -27,10 +27,11 @@ export async function generateMultipartUploadURL(fileName: string) {
   const rawBytes = await randomBytes(4);
   const objectName = fileName ?? rawBytes.toString('hex');
 
-  const Expires = new Date(
-    new Date().getTime() +
-      Number(process.env.AWS_S3_URLS_EXPIRATION_TIME ?? defaultUrlsExpirationTime) * 1000
-  );
+  const seconds = Number(process.env.AWS_S3_URLS_EXPIRATION_TIME ?? defaultUrlsExpirationTime);
+  const Expires = new Date(new Date().getTime() + seconds * 1000);
+
+  console.log('Upload urls expiration date: ', Expires.toISOString());
+  console.log('Seconds: ', seconds);
 
   const params: aws.S3.CreateMultipartUploadRequest = {
     Bucket: process.env.AWS_S3_BUCKET_NAME,
@@ -62,11 +63,14 @@ export async function generatePresignedUrlsParts(
 
   const promises = [];
 
+  const Expires = Number(process.env.AWS_S3_URLS_EXPIRATION_TIME ?? defaultUrlsExpirationTime);
+
   for (let index = 0; index < parts; index++) {
     promises.push(
       s3.getSignedUrlPromise('uploadPart', {
         ...baseParams,
         PartNumber: index + 1,
+        Expires,
       })
     );
   }
