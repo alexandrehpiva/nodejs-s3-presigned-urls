@@ -149,18 +149,6 @@ preSignedUrlsRoute.post('/', async (req: Request, res: Response) => {
     return;
   }
 
-  if (!isCompletedPartArr(parts)) {
-    const response: ErrorResponse = {
-      error: 'Invalid value in "parts" query parameter. Should be a CompletedPart array.',
-      objectName,
-    };
-
-    console.error('Error:', response);
-    res.status(400);
-    res.send(response);
-    return;
-  }
-
   if (!uploadId) {
     const response: ErrorResponse = {
       error: '"uploadId" body parameter must have a value.',
@@ -188,6 +176,19 @@ preSignedUrlsRoute.post('/', async (req: Request, res: Response) => {
   if (!parts) {
     const response: ErrorResponse = {
       error: '"parts" body parameter must have a value.',
+      objectName,
+    };
+
+    console.error('Error:', response);
+    res.status(400);
+    res.send(response);
+    return;
+  }
+
+  if (!isCompletedPartArr(parts)) {
+    const response: ErrorResponse = {
+      error:
+        'Invalid value in "parts" query parameter. Should be a CompletedPart array: { ETag: string, PartNumber: number }[]',
       objectName,
     };
 
